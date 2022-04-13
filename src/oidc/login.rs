@@ -86,7 +86,7 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 
 
 fn oidc_authz_code_flow(p_request: OIDCAuthzRequest) -> String {
-	format!("<h1>PlopID IdP server</h1><h2>OIDC Authorization Endpoint</h2><h3>Client</h3><ul><li>client_id: {}</li><li>redirect_uri: {}</li></ul><h3>Request</h3><ul><li>flow: code</li><li>scopes: {:?}</li><li>state: {:?}</li><li>nonce: {:?}</li></ul>",
+	format!("<h1>PlopID IdP server</h1><h2>OIDC Authorization Endpoint</h2><h3>Client</h3><ul><li>client_id: {}</li><li>redirect_uri: {}</li></ul><h3>Request - Code Flow</h3><ul><li>scopes: {:?}</li><li>state: {:?}</li><li>nonce: {:?}</li></ul>",
 		p_request.client.id,
 		p_request.client.redirect_uri,
 		p_request.scopes,
@@ -96,7 +96,7 @@ fn oidc_authz_code_flow(p_request: OIDCAuthzRequest) -> String {
 
 
 fn oidc_authz_implicit_flow(p_request: OIDCAuthzRequest) -> String {
-	format!("<h1>PlopID IdP server</h1><h2>OIDC Authorization Endpoint</h2><h3>Client</h3><ul><li>client_id: {}</li><li>redirect_uri: {}</li></ul><h3>Request</h3><ul><li>flow: implicit</li><li>scopes: {:?}</li><li>state: {:?}</li><li>nonce: {:?}</li></ul>",
+	format!("<h1>PlopID IdP server</h1><h2>OIDC Authorization Endpoint</h2><h3>Client</h3><ul><li>client_id: {}</li><li>redirect_uri: {}</li></ul><h3>Request - Implicit Flow</h3><ul><li>scopes: {:?}</li><li>state: {:?}</li><li>nonce: {:?}</li><li><strong>The Implicit Flow is not supported</strong></ul>",
 		p_request.client.id,
 		p_request.client.redirect_uri,
 		p_request.scopes,

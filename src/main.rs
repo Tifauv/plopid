@@ -2,6 +2,7 @@
 extern crate plopid;
 
 use plopid::oidc::{discovery, login};
+use plopid::authn::pwd;
 use plopid::client::registered_clients::{Client, ClientRegistry};
 use std::sync::RwLock;
 
@@ -22,5 +23,6 @@ fn rocket() -> _ {
     rocket::build()
 		.manage(RwLock::new(clients))
 		.mount("/.well-known", routes![discovery::oidc_discovery])
+		.mount("/authn", routes![pwd::login_pwd])
 		.mount("/oidc", routes![login::oidc_authz])
 }

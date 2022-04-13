@@ -1,2 +1,2 @@
-pub mod authz;
+pub mod login;
 pub mod discovery;

@@ -16,7 +16,7 @@ pub struct OpenIDConfiguration<'r> {
 pub fn oidc_discovery<'r>() -> Json<OpenIDConfiguration<'r>> {
 	Json(OpenIDConfiguration {
 		issuer                    : "https://localhost:8000/oidc",
-		authorization_endpoint    : "https://localhost:8000/oidc/authz",
+		authorization_endpoint    : "https://localhost:8000/oidc/login",
 		token_endpoint            : "https://localhost:8000/oidc/token",
 		userinfo_endpoint         : "https://localhost:8000/oidc/userinfo",
 		scopes_supported          : [ "openid" ].to_vec(),

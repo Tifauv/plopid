@@ -1,7 +1,7 @@
 use rocket::get;
 use rocket::State;
 use rocket::http::{Status, ContentType};
-use crate::client::registered_clients::ClientRegistry;
+use crate::clients::registry::ClientRegistry;
 use std::sync::RwLock;
 
 
@@ -31,6 +31,23 @@ impl OIDCRequestingClient {
 	}
 }
 
+
+#[derive(Clone, PartialEq)]
+pub enum ResponseType {
+	Code,
+	IdToken,
+	Unsupported,
+}
+
+impl ResponseType {
+	pub fn from_str(p_response_type: &str) -> ResponseType {
+		match p_response_type {
+			"code"     => ResponseType::Code,
+			"id_token" => ResponseType::IdToken,
+			_          => ResponseType::Unsupported,
+		}
+	}
+}
 
 fn check_scope(p_scope: &String) -> bool {
 	p_scope.split(" ").collect::<Vec<_>>().contains(&"openid")
@@ -86,7 +103,7 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 
 
 fn oidc_authz_code_flow(p_request: OIDCAuthzRequest) -> String {
-	format!("<html><body><h1>PlopID IdP server</h1><h2>OIDC Authorization Endpoint</h2><h3>Client</h3><ul><li>client_id: {}</li><li>redirect_uri: {}</li></ul><h3>Request - Code Flow</h3><ul><li>scopes: {:?}</li><li>state: {:?}</li><li>nonce: {:?}</li></ul><h3>Login</h3><form method=\"POST\" action=\"/authn/login_pwd\"><ul><li><label for=\"u_login\">Login</label><input id=\"u_login\" name=\"u_login\" type=\"text\" autofocus=\"true\" minlength=\"4\" maxlength=\"64\" required=\"true\"/></li><li><label for=\"u_password\">Password</label><input id=\"u_password\" name=\"u_password\" type=\"password\" minlength=\"12\" maxlength=\"64\" required=\"true\"/></li></ul><input type=\"submit\" value=\"Login\"/></form></body></html>",
+	format!("<html><body><h1>PlopID IdP server</h1><h2>OIDC Authorization Endpoint</h2><h3>Client</h3><ul><li>client_id: {}</li><li>redirect_uri: {}</li></ul><h3>Request - Code Flow</h3><ul><li>scopes: {:?}</li><li>state: {:?}</li><li>nonce: {:?}</li></ul><h3>Login</h3><form method=\"GET\" action=\"/authn/login\"><input type=\"submit\" value=\"Go to Login page\"/></form></body></html>",
 		p_request.client.id,
 		p_request.client.redirect_uri,
 		p_request.scopes,

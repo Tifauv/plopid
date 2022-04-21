@@ -1,0 +1,10 @@
+{
+	"name": "PlopID",
+	"files": [ { "git" : 1  } ],
+
+	"build": {
+		"build": "cargo build",
+		"quick": "cargo run",
+		"clean": "cargo clean"
+	}
+}

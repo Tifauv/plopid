@@ -1,14 +1,14 @@
 #[macro_use] extern crate rocket;
 extern crate plopid;
 
-use plopid::oidc::{discovery, login};
-use plopid::authn::pwd;
-use plopid::client::registered_clients::{Client, ClientRegistry};
+use plopid::oidc;
+use plopid::authn;
+use plopid::clients::registry::{Client, ClientRegistry};
+use rocket_dyn_templates::Template;
 use std::sync::RwLock;
 
 #[launch]
 fn rocket() -> _ {
-
 	// Create the clients registry
 	let mut clients = ClientRegistry::new();
 	
@@ -21,8 +21,10 @@ fn rocket() -> _ {
 		String::from("https://example.org/client2/oidc/callback")));
 
     rocket::build()
+		.attach(Template::fairing())
 		.manage(RwLock::new(clients))
-		.mount("/.well-known", routes![discovery::oidc_discovery])
-		.mount("/authn", routes![pwd::login_pwd])
-		.mount("/oidc", routes![login::oidc_authz])
+		.mount("/.well-known", routes![oidc::discovery::oidc_discovery])
+		.mount("/authn", routes![authn::form::login])
+		.mount("/authn", routes![authn::pwd::login_pwd])
+		.mount("/oidc", routes![oidc::login::oidc_authz])
 }

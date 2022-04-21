@@ -1,3 +1,3 @@
 pub mod authn;
-pub mod client;
+pub mod clients;
 pub mod oidc;

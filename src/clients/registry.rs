@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use rand::{Rng};
 
 
@@ -8,6 +9,19 @@ pub struct NewClient {
 	redirect_uris: Vec<String>,
 }
 
+
+#[derive(Debug)]
+pub enum ClientSecretSuccess {
+    NoSecretNeeded,
+    SecretMatched,
+}
+
+#[derive(Debug)]
+pub enum ClientSecretError {
+    NoSecretRegistered,
+    NoSecretProvided,
+    SecretsDoNotMatch,
+}
 
 #[derive(Debug, PartialEq)]
 pub struct RegisteredClient {
@@ -41,10 +55,27 @@ impl RegisteredClient {
 		self.redirect_uris.contains(p_redirect_uri)
 	}
 	
-	pub fn authn_by_secret(&self, p_client_secret: Option<String>) -> Result<bool, String> {
+	pub fn authn_by_secret(&self, p_client_secret: Option<&String>) -> Result<ClientSecretSuccess, ClientSecretError> {
 		match &self.secret {
-			None    => Err(format!("Client '{}' was not registered with a secret", &self.name)),
-			Some(s) => Ok(s.eq(p_client_secret)),
+			None    => {
+				match p_client_secret {
+					None    => Ok(ClientSecretSuccess::NoSecretNeeded),
+					Some(_) => Err(ClientSecretError::NoSecretRegistered),
+				}
+			},
+			Some(s) => {
+				match p_client_secret {
+					None     => Err(ClientSecretError::NoSecretProvided),
+					Some(s2) => {
+						if s.eq(s2) {
+							Ok(ClientSecretSuccess::SecretMatched)
+						}
+						else {
+							Err(ClientSecretError::SecretsDoNotMatch)
+						}
+					}
+				}
+			},
 		}
 	}
 	
@@ -56,6 +87,7 @@ impl RegisteredClient {
 		self.id.len() > 0 && self.redirect_uris.len() > 0
 	}
 }
+
 
 
 #[derive(Debug, PartialEq)]
@@ -88,6 +120,33 @@ pub struct ClientRegistry {
 	clients: HashMap<String, RegisteredClient>,
 }
 
+#[derive(Debug)]
+pub enum ClientAuthenticationError {
+    UnknownClientId,
+    UnknownRedirectUri,
+    ClientSecret(ClientSecretError),
+    //ClientPublicKeyError,
+}
+
+impl From<ClientSecretError> for ClientAuthenticationError {
+	fn from(p_secret_error: ClientSecretError) -> Self {
+		ClientAuthenticationError::ClientSecret(p_secret_error)
+	}
+}
+
+impl fmt::Display for ClientAuthenticationError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match *self {
+			ClientAuthenticationError::UnknownClientId => 
+				write!(f, "The client_id is unknown amongst the registered clients"),
+			ClientAuthenticationError::UnknownRedirectUri =>
+				write!(f, "The redirect_uri does not match any of the registered ones"),
+			ClientAuthenticationError::ClientSecret(_) =>
+				write!(f, "A client_secret was required or the given one did not match"),
+		}
+	}
+}
+
 impl ClientRegistry {
 	pub fn new() -> ClientRegistry {
 		ClientRegistry {
@@ -95,24 +154,19 @@ impl ClientRegistry {
 		}
 	}
 	
-	pub fn authenticate(&self, p_requesting_client: &RequestingClient) -> Result<String, String> {
+	pub fn authenticate(&self, p_requesting_client: &RequestingClient) -> Result<String, ClientAuthenticationError> {
 		// Check if the client_id is registered
 		match self.get_client(&p_requesting_client.id) {
-			None    => Err(format!("There is no registered client with id '{}'", p_requesting_client.id)),
+			None    => Err(ClientAuthenticationError::UnknownClientId),
 			Some(c) => {
 				// TODO Check public key authentication ?
 				
 				// TODO Check if the client_secret is defined and matches
-				if c.has_secret() {
-					if !c.authn_by_secret(p_requesting_client.secret) {
-						Err(String::from("No client_secret in the request or bad client_secret"))
-					}
-					// TODO log client authentication
-				}
+				c.authn_by_secret(p_requesting_client.secret.as_ref())?;
 		
 				// Check if the redirect_uri matches one of the registered ones
 				if !c.has_redirect_uri(&p_requesting_client.redirect_uri) {
-					Err(String::from("Redirect URI is not registered for that client"))
+					Err(ClientAuthenticationError::UnknownRedirectUri)
 				}
 				else {
 					Ok(c.name.clone())
@@ -135,14 +189,7 @@ impl ClientRegistry {
 			Some(c) => Ok(c.has_redirect_uri(p_redirect_uri)),
 		}
 	}
-	
-	pub fn authn_by_secret(&self, p_client_id: &String, p_client_secret: &String) -> Result<bool, String> {
-		match self.get_client(p_client_id) {
-			None    => Err(String::from("Unknown client")),
-			Some(c) => c.authn_by_secret(p_client_secret),
-		}
-	}
-	
+
 	pub fn register(&mut self, p_client: NewClient) -> Result<String, String> {
 		let client = RegisteredClient::from_client(p_client, self.generate_id());
 		self.add_client(client)

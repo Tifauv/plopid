@@ -1,0 +1,11 @@
+{{#> base_layout title="Error" }}
+	{{#*inline "main"}}
+		<h2>Error {{ error_code }}</h2>
+
+		<h3>Message</h3>
+		<p>{{ error_message }}</p>
+		
+		<h3>Details</h3>
+		<p>{{ error_details }}</p>
+	{{/inline }}
+{{/ base_layout }}

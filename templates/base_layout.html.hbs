@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>PlopID - {{ title }}</title>
+	<link href="/res/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	{{#> head-block }}
+		{{!-- Custom per-page head contributions if needed --}}
+	{{/ head-block }}
+</head>
+<body>
+	<nav class="navbar navbar-expang-lg navbar-dark bg-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">PlopID IdP server</a>
+		</div>
+	</nav>
+	<main>
+		{{#> main }}
+			{{!-- Main page content --}}
+		{{/ main }}
+	</main>
+	<footer class="fixed-bottom container">
+		<hr>
+		<p class="text-secondary text-center fs-6">Proudly powered by
+			<a href="https://github.com/Tifauv/plopid" target="_blank" class="link-secondary">PlopID</a>
+		</p>
+	</footer>
+	
+	{{#> scripts-block }}
+		{{!-- Custom per-page scripts if needed --}}
+	{{/ scripts-block }}
+</body>
+</html>

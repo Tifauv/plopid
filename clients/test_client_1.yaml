@@ -1,0 +1,5 @@
+---
+name: Application 1
+id: test_client_1
+redirect_uris:
+  - https://example.org/client1/oidc/callback

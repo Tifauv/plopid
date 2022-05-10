@@ -1,0 +1,20 @@
+{{#> base_layout title="OIDC Authorization" }}
+	{{#*inline "main"}}
+		<h2>OIDC Authorization Endpoint</h2>
+		
+		<h3>Service</h3>
+		<ul>
+			<li>name: {{ client_name }}</li>
+			<li>client_id: {{ client_id }}</li>
+			<li>redirect_uri: {{ redirect_uri }}</li>
+		</ul>
+		
+		<h3>Request - Implicit Flow</h3>
+		<ul>
+			<li>scopes: {{ request_scopes }}</li>
+			<li>state: {{ request_state }}</li>
+			<li>nonce: {{ request_nonce }}</li>
+		</ul>
+		<p><strong>The Implicit Flow is not supported</strong></p>
+	{{/inline }}
+{{/ base_layout }}

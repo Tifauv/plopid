@@ -6,10 +6,6 @@ use crate::services::client::RequestingClient;
 use crate::services::service::{NewService, RegisteredService, ServiceSecretError};
 
 
-pub struct ServiceRegistry {
-	services: HashMap<String, RegisteredService>,
-}
-
 #[derive(Debug)]
 pub enum ServiceAuthenticationError {
     UnknownServiceId,
@@ -37,6 +33,40 @@ impl fmt::Display for ServiceAuthenticationError {
 	}
 }
 
+
+
+#[derive(Debug)]
+pub enum ServiceError {
+    InvalidService,
+    DuplicateServiceId,
+    BadServiceDefinitionFile(std::io::Error),
+}
+
+impl From<std::io::Error> for ServiceError {
+	fn from(p_error: std::io::Error) -> Self {
+		ServiceError::BadServiceDefinitionFile(p_error)
+	}
+}
+
+impl fmt::Display for ServiceError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match *self {
+			ServiceError::InvalidService => 
+				write!(f, "The service has no client_id or no redirect_uri"),
+			ServiceError::DuplicateServiceId =>
+				write!(f, "A service with the same client_id has already been added"),
+			ServiceError::BadServiceDefinitionFile(_) =>
+				write!(f, "Bad service definition file"),
+		}
+	}
+}
+
+
+
+pub struct ServiceRegistry {
+	services: HashMap<String, RegisteredService>,
+}
+
 impl ServiceRegistry {
 	pub fn new() -> ServiceRegistry {
 		ServiceRegistry {
@@ -44,16 +74,16 @@ impl ServiceRegistry {
 		}
 	}
 	
-	pub fn load_from_directory(&mut self, p_directory: &str) -> Result<(), std::io::Error> {
+	pub fn load_from_directory(&mut self, p_directory: &str) -> Result<(), ServiceError> {
 		let files = fs::read_dir(p_directory).unwrap();
 		for file in files {
-			//let service = RegisteredService::from_yaml_file(file);
 			match file {
 				Ok(f) => {
 					let service = RegisteredService::from_yaml_file(f.path().to_str().unwrap().to_string())?;
-					self.add_service(service);
+					self.add_service(service)?;
 				},
-				Err(_) => {
+				Err(e) => {
+					return Err(ServiceError::BadServiceDefinitionFile(e));
 				}
 			}
 		}
@@ -82,6 +112,10 @@ impl ServiceRegistry {
 		}
 	}
 	
+	pub fn count_services(&self) -> usize {
+		self.services.len()
+	}
+	
 	pub fn get_service(&self, p_service_id: &String) -> Option<&RegisteredService> {
 		self.services.get(p_service_id)
 	}
@@ -94,22 +128,21 @@ impl ServiceRegistry {
 		self.services.contains_key(p_service_id)
 	}
 	
-	pub fn register(&mut self, p_service: NewService) -> Result<String, String> {
+	pub fn register(&mut self, p_service: NewService) -> Result<(), ServiceError> {
 		let service = RegisteredService::from_service(p_service, self.generate_id());
 		self.add_service(service)
 	}
 	
-	pub fn add_service(&mut self, p_service: RegisteredService) -> Result<String, String> {
+	pub fn add_service(&mut self, p_service: RegisteredService) -> Result<(), ServiceError> {
 		if !p_service.is_valid() {
-			Err(String::from("Service is not valid"))
+			Err(ServiceError::InvalidService)
 		}
 		else if self.is_service_known(&p_service) {
-			Err(format!("Service id '{}' is already registered by another", p_service.client_id()))
+			Err(ServiceError::DuplicateServiceId)
 		}
 		else {
-			let service_id = p_service.client_id();
 			self.services.insert(p_service.client_id(), p_service);
-			Ok(service_id)
+			Ok(())
 		}
 	}
 	

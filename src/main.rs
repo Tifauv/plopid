@@ -4,13 +4,24 @@ extern crate plopid;
 use plopid::oidc;
 use plopid::authn;
 use plopid::services::registry;
+use log::{info, warn};
 use std::sync;
 
 #[launch]
 fn rocket() -> _ {
+	info!("PlopID starting...");
+	
 	// Create the services registry & load the client files
 	let mut services = registry::ServiceRegistry::new();
-	services.load_from_directory("clients");
+	info!("Service registry is ready, loading service definition files...");
+	match services.load_from_directory("clients") {
+		Ok(_)  => {
+			info!("{} service definition files loaded", services.count_services());
+		}
+		Err(e) => {
+			warn!("Error: {}", e);
+		}
+	}
 
     rocket::build()
 		.attach(rocket_dyn_templates::Template::fairing())

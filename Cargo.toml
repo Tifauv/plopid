@@ -7,9 +7,11 @@ authors = [ "Olivier Serve <tifauv@gmail.com>" ]
 [dependencies]
 log          = "0.4"
 rand         = "0.8.5"
-serde        = "1.0"
-serde_derive = "1.0"
 serde_yaml   = "0.8.24"
+
+[dependencies.jsonwebtoken]
+version = "8"
+default-features = false
 
 [dependencies.rocket]
 version = "0.5.0-rc.1"
@@ -18,3 +20,7 @@ features = [ "json" ]
 [dependencies.rocket_dyn_templates]
 version = "0.1.0-rc.1"
 features = [ "handlebars" ]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]

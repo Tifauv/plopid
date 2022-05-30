@@ -2,7 +2,7 @@
 extern crate plopid;
 
 use plopid::oidc;
-use plopid::authn;
+use plopid::web;
 use plopid::services::registry;
 use log::{info, warn};
 use std::sync;
@@ -26,9 +26,10 @@ fn rocket() -> _ {
     rocket::build()
 		.attach(rocket_dyn_templates::Template::fairing())
 		.manage(sync::RwLock::new(services))
+		.mount("/",            routes![web::base::home])
 		.mount("/res",         rocket::fs::FileServer::from("res"))
+		.mount("/authn",       routes![web::authn::form::login])
+		.mount("/authn",       routes![web::authn::pwd::login_pwd])
 		.mount("/.well-known", routes![oidc::discovery::oidc_discovery])
-		.mount("/authn",       routes![authn::form::login])
-		.mount("/authn",       routes![authn::pwd::login_pwd])
 		.mount("/oidc",        routes![oidc::login::oidc_authz])
 }

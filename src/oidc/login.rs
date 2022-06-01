@@ -2,7 +2,7 @@ use rocket::get;
 use rocket::{Responder, State};
 use rocket::response::Redirect;
 use rocket_dyn_templates::Template;
-use jsonwebtoken::{encode, Header, EncodingKey};
+use jsonwebtoken::{Header, EncodingKey};
 use std::sync::RwLock;
 use crate::services::registry;
 use crate::services::client;
@@ -43,7 +43,7 @@ fn check_scope(p_scope: &String) -> bool {
 
 #[derive(Responder)]
 pub enum OIDCAuthzResponse {
-	#[response(status = 302)]
+	#[response(status = 303)]
 	RedirectLogin(Redirect),
 	#[response(status = 400)]
 	BadRequest(Template),
@@ -85,10 +85,15 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 	match ResponseType::from_str(&response_type) {
 		/* Code Flow */
 		ResponseType::Code => {
+			// TODO fetch from configuration
+			let cfg_jwt_internal_key   = b"secret";
+			let cfg_jwt_oidc_issuer    = "https://localhost:8000/oidc".to_string();
+			let cfg_jwt_authn_audience = "https://localhost:8000/authn".to_string();
+			
 			let oidc_claims = session::OIDCSessionClaims {
-				aud: "https://localhost:8000/authn/login".to_owned(),
+				aud: cfg_jwt_authn_audience,
 				exp: 10000000000, // TODO generate
-				iss: "https://localhost:8000/oidc".to_owned(),
+				iss: cfg_jwt_oidc_issuer,
 				client_name:  client_name,
 				client_id:    request.client.client_id(),
 				redirect_uri: request.client.redirect_uri(),
@@ -96,8 +101,8 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 				state:        request.state,
 				nonce:        request.nonce,
 			};
-			match encode(&Header::default(), &oidc_claims, &EncodingKey::from_secret(b"secret")) {
-				Ok(t)  => OIDCAuthzResponse::RedirectLogin(Redirect::to(format!("/authn/login?jwt={}", t))),
+			match jsonwebtoken::encode(&Header::default(), &oidc_claims, &EncodingKey::from_secret(cfg_jwt_internal_key)) {
+				Ok(t)  => OIDCAuthzResponse::RedirectLogin(Redirect::to(format!("/authn/login?session={}", t))),
 				Err(e) => OIDCAuthzResponse::ServerError(error::error_page(
 						500,
 						"Failed to generate the JWT token",

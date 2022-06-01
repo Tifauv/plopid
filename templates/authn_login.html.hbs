@@ -1,7 +1,7 @@
 {{#> base_layout title="Authentication" }}
 	{{#*inline "main"}}
 		<div class="container">
-			<h2>Authentication required</h2>
+			<h2>Authentication required{{#if client_name}} by {{ client_name }}{{/if}}</h2>
 			<form method="POST" action="/authn/login_pwd" class="border shadow rounded container">
 				<div class="mb-3">
 					<label for="u_login" class="form-label">Username</label>
@@ -11,6 +11,9 @@
 					<label for="u_password" class="form-label">Password</label>
 					<input id="u_password" name="u_password" type="password" minlength="12" maxlength="64" required="true" class="form-control" placeholder="Password" aria-label="Password"/>
 				</div>
+				{{#if session_jwt}}
+				<input type="hidden" name="session" value="{{ session_jwt }}"/>
+				{{/if}}
 				<input type="submit" value="Sign in" class="btn btn-primary"/>
 			</form>
 		</div>

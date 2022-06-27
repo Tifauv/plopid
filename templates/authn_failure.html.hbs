@@ -1,0 +1,8 @@
+{{#> base_layout title="Authentication" }}
+	{{#*inline "main"}}
+		<div class="container">
+			<h2>Authentication failed</h2>
+			<p><a href="/authn/login?session={{ session_jwt }}">Retry</a></p>
+		</div>
+	{{/inline }}
+{{/ base_layout }}

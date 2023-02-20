@@ -2,7 +2,7 @@
 extern crate plopid;
 
 use plopid::config;
-use plopid::config::{Config, ConfigLoader, TomlConfigLoader};
+use plopid::config::{Config, ConfigLoader, YamlConfigLoader};
 use plopid::oidc;
 use plopid::web;
 use plopid::services::registry;
@@ -16,7 +16,7 @@ use std::sync;
 /// If the configuration cannot be loaded, the default configuration from
 /// `plopid::config::default()` is returned.
 fn load_config(p_file: &str) -> Config {
-    TomlConfigLoader::new(String::from(p_file)).load()
+    YamlConfigLoader::new(String::from(p_file)).load()
             .and_then(|c: Config| {
                 info!("Configuration read from '{}'", p_file);
                 Ok(c)
@@ -33,8 +33,8 @@ fn load_config(p_file: &str) -> Config {
 fn rocket() -> _ {
 	info!("PlopID starting...");
 
-	// Load the configuration from the "config/plopid.toml" file
-	let config = load_config("config/plopid.toml");
+	// Load the configuration from the "config/plopid.yaml" file
+	let config = load_config("config/plopid.yaml");
 
 	// Create the services registry & load the client files
 	let mut services = registry::ServiceRegistry::new();

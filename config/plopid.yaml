@@ -1,6 +1,7 @@
 ---
 server:
-  ip: localhost
+  listen_ip: 127.0.0.1
+  host: localhost
   port: 8000
   templates_dir: templates
 

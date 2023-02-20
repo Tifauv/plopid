@@ -9,7 +9,8 @@ use serde::Deserialize;
 ///
 /// let cfg = Config {
 ///         server: ServerParams {
-///             ip           : String::from("localhost"),
+///             listen_ip    : String::from("127.0.0.1"),
+///             host         : String::from("localhost"),
 ///             port         : 8080,
 ///             templates_dir: String::from("templates"),
 ///         },
@@ -24,7 +25,8 @@ use serde::Deserialize;
 ///             internal_authn_aud : String::from("https://localhost:8000/authn"),
 ///         },
 /// };
-/// assert_eq!(cfg.server.ip,              String::from("localhost"));
+/// assert_eq!(cfg.server.listen_ip,       String::from("127.0.0.1"));
+/// assert_eq!(cfg.server.host,            String::from("localhost"));
 /// assert_eq!(cfg.server.port,            8080);
 /// assert_eq!(cfg.server.templates_dir,   String::from("templates"));
 /// assert_eq!(cfg.clients.regsitry_dir,   String::from("clients"));
@@ -48,18 +50,21 @@ pub struct Config {
 /// use oxyboard::config::ServerParams;
 ///
 /// let server_cfg = ServerParams {
-///         ip           : String::from("localhost"),
-///         port         : 8080,
+///         listen_ip    : String::from("127.0.0.1"),
+///         host         : String::from("localhost"),
+///         port         : 8000,
 ///         templates_dir: String::from("templates"),
 /// };
-/// assert_eq!(server_cfg.ip,            String::from("localhost"));
-/// assert_eq!(server_cfg.port,          8080);
+/// assert_eq!(server_cfg.listen_ip,     String::from("127.0.0.1"));
+/// assert_eq!(server_cfg.host,          String::from("localhost"));
+/// assert_eq!(server_cfg.port,          8000);
 /// assert_eq!(server_cfg.templates_dir, String::from("templates"));
 /// ```
 #[derive(Debug,Deserialize)]
 pub struct ServerParams {
-    pub ip   : String,
-    pub port : u16,
+    pub listen_ip     : String,
+    pub host          : String,
+    pub port          : u16,
     pub templates_dir : String,
 }
 

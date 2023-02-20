@@ -8,18 +8,21 @@ use crate::config::data::{ Config, ServerParams, ClientsParams, JWTParams };
 /// use oxyboard::config;
 ///
 /// let cfg = config::default();
-/// assert_eq!(cfg.server.ip,          String::from("localhost"));
-/// assert_eq!(cfg.server.port,        8080);
-/// assert_eq!(cfg.board.name,         String::from("oxyboard"));
-/// assert_eq!(cfg.board.history_size, 512);
-/// assert_eq!(cfg.storage.data_dir,   String::from("data"));
-/// assert_eq!(cfg.ui.templates_dir,   String::from("templates"));
+/// assert_eq!(cfg.server.listen_ip,       String::from("127.0.0.1"));
+/// assert_eq!(cfg.server.host,            String::from("localhost"));
+/// assert_eq!(cfg.server.port,            8000);
+/// assert_eq!(cfg.server.templates_dir,   String::from("templates"));
+/// assert_eq!(cfg.clients.registry_dir,   String::from("config/clients"));
+/// assert_eq!(cfg.jwt.oidc_issuer,        String::from("https://localhost:8000/oidc"));
+/// assert_eq!(cfg.jwt.internal_key,       String::from("secret"));
+/// assert_eq!(cfg.jwt.internal_auhtn_aud, String::from("https://localhost:8000/authn"));
 /// ```
 pub fn default() -> Config {
     Config {
         server: ServerParams {
-            ip           : String::from("localhost"),
-            port         : 8080,
+            listen_ip    : String::from("127.0.0.1"),
+            host         : String::from("localhost"),
+            port         : 8000,
             templates_dir: String::from("templates"),
         },
 

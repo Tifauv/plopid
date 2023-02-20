@@ -8,6 +8,7 @@ authors = [ "Olivier Serve <tifauv@gmail.com>" ]
 log          = "0.4"
 rand         = "0.8.5"
 serde_yaml   = "0.8.24"
+toml         = "0.4"
 
 [dependencies.jsonwebtoken]
 version = "8"

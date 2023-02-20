@@ -1,0 +1,14 @@
+[server]
+ip = "localhost"
+port = 8000
+
+templates_dir = "templates"
+
+[clients]
+registry_dir = "config/clients"
+
+[jwt]
+oidc_issuer  = "https://localhost:8000/oidc"
+# Internal tokens only
+internal_key = "secret"
+internal_authn_aud = "https://localhost:8000/authn"

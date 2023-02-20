@@ -11,7 +11,7 @@ use crate::web::error;
 
 
 #[derive(Debug, PartialEq)]
-pub struct OIDCAuthzRequest<'a> {
+pub struct OIDCAuthRequest<'a> {
 	scopes: Vec<String>,
 	client: &'a client::RequestingClient,
 	state: Option<String>,
@@ -42,7 +42,7 @@ fn check_scope(p_scope: &String) -> bool {
 
 
 #[derive(Responder)]
-pub enum OIDCAuthzResponse {
+pub enum OIDCAuthResponse {
 	#[response(status = 303)]
 	RedirectLogin(Redirect),
 	#[response(status = 400)]
@@ -51,13 +51,13 @@ pub enum OIDCAuthzResponse {
 	ServerError(Template),
 }
 
-#[get("/login?<scope>&<response_type>&<client_id>&<redirect_uri>&<state>&<nonce>")]
-pub fn oidc_authz(scope: String, response_type: String, client_id: String, redirect_uri: String, state: Option<String>, nonce: Option<String>, p_service_registry: &State<RwLock<registry::ServiceRegistry>>) -> OIDCAuthzResponse {
+#[get("/auth?<scope>&<response_type>&<client_id>&<redirect_uri>&<state>&<nonce>")]
+pub fn endpoint(scope: String, response_type: String, client_id: String, redirect_uri: String, state: Option<String>, nonce: Option<String>, p_service_registry: &State<RwLock<registry::ServiceRegistry>>) -> OIDCAuthResponse {
 	// Check the client
 	let service_registry = p_service_registry.read().unwrap();
 	let client = client::RequestingClient::new(client_id, redirect_uri);
 	let client_name = match service_registry.authenticate(&client) {
-		Err(_) => return OIDCAuthzResponse::BadRequest(error::error_page(
+		Err(_) => return OIDCAuthResponse::BadRequest(error::error_page(
 				400,
 				"Client authentication failure",
 				"Either:<ul><li>the client_id has not been registered to this IdP</li> \
@@ -69,14 +69,14 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 
 	// Check the OIDC minimal scope
 	if !check_scope(&scope) {
-		return OIDCAuthzResponse::BadRequest(error::error_page(
+		return OIDCAuthResponse::BadRequest(error::error_page(
 				400,
 				"Invalid scope",
 				"The <strong>openid</strong> scope MUST be present for OIDC requests")) 
 	}
 
 	// Check the response type
-	let request = OIDCAuthzRequest {
+	let request = OIDCAuthRequest {
 		client: &client,
 		scopes: scope.split(" ").map(str::to_string).collect(),
 		state: state,
@@ -102,8 +102,8 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 				nonce:        request.nonce,
 			};
 			match jsonwebtoken::encode(&Header::default(), &oidc_claims, &EncodingKey::from_secret(cfg_jwt_internal_key)) {
-				Ok(t)  => OIDCAuthzResponse::RedirectLogin(Redirect::to(format!("/authn/login?session={}", t))),
-				Err(e) => OIDCAuthzResponse::ServerError(error::error_page(
+				Ok(t)  => OIDCAuthResponse::RedirectLogin(Redirect::to(format!("/authn/login?session={}", t))),
+				Err(e) => OIDCAuthResponse::ServerError(error::error_page(
 						500,
 						"Failed to generate the JWT token",
 						format!("{}", e).as_str())),
@@ -111,7 +111,7 @@ pub fn oidc_authz(scope: String, response_type: String, client_id: String, redir
 		},
 		/* Implicit & other flows */
 		ResponseType::IdToken | ResponseType::Unsupported => {
-			OIDCAuthzResponse::BadRequest(error::error_page(
+			OIDCAuthResponse::BadRequest(error::error_page(
 				400,
 				"Invalid response_type",
 				"The given response_type is currently not supported")) 

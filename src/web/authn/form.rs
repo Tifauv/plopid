@@ -1,7 +1,8 @@
 use rocket::get;
-use rocket::Responder;
+use rocket::{Responder, State};
 use rocket_dyn_templates::Template;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation};
+use std::sync::RwLock;
+use crate::config;
 use crate::jwt::session;
 use crate::web::error;
 
@@ -26,30 +27,18 @@ pub enum AuthnLoginResponse {
 }
 
 #[get("/login?<session>")]
-pub fn login(session: Option<String>) -> AuthnLoginResponse {
+pub fn login(session: Option<String>, p_config: &State<RwLock<config::Config>>) -> AuthnLoginResponse {
     // Check the session JWT
     match session {
-        Some(t) => {
-			// TODO fetch from configuration
-			let cfg_jwt_internal_key   = b"secret";
-			let cfg_jwt_oidc_issuer    = "https://localhost:8000/oidc".to_string();
-			let cfg_jwt_authn_audience = "https://localhost:8000/authn".to_string();
-
-			let mut validation = Validation::new(Algorithm::HS256);
-			validation.set_required_spec_claims(&["exp", "aud", "iss"]);
-			validation.set_audience(&[cfg_jwt_authn_audience]);
-			validation.set_issuer(&[cfg_jwt_oidc_issuer]);
-			
-			match jsonwebtoken::decode::<session::OIDCSessionClaims>(
-                &t,
-                &DecodingKey::from_secret(cfg_jwt_internal_key),
-                &validation) {
-                Ok(d) => {
+        Some(token) => {
+			let config = p_config.read().unwrap();
+			match session::check_token(&token, &config) {
+                Ok(decoded) => {
                     AuthnLoginResponse::ClientLoginForm(
                         Template::render("authn_login", &LoginContext {
                             page_name: "Authentication",
-                            client_name: Some(d.claims.client_name),
-                            session_jwt: Some(t),
+                            client_name: Some(decoded.claims.client_name),
+                            session_jwt: Some(token),
                         })
                     )
                 },

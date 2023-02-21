@@ -58,6 +58,7 @@ fn rocket() -> _ {
 		.mount("/authn",       routes![web::authn::pwd::login_pwd])
 		.mount("/.well-known", routes![oidc::discovery::endpoint])
 		.mount("/oidc",        routes![oidc::auth::endpoint])
+		.mount("/oidc",        routes![oidc::auth::redirect])
 		.mount("/oidc",        routes![oidc::token::endpoint])
 		.mount("/oidc",        routes![oidc::userinfo::endpoint])
 }
